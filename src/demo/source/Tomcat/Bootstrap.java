@@ -1,6 +1,11 @@
 package demo.source.Tomcat;
 
+import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.NetUtil;
+import cn.hutool.core.util.StrUtil;
+import demo.source.Tomcat.constant.Constant;
+import demo.source.Tomcat.model.Request;
+import demo.source.Tomcat.model.Response;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,18 +27,22 @@ public class Bootstrap {
             ServerSocket ss = new ServerSocket(port);
 
             while(true) {
+
                 Socket s =  ss.accept();
-                InputStream is= s.getInputStream();
-                int bufferSize = 1024;
-                byte[] buffer = new byte[bufferSize];
-                is.read(buffer);
-                String requestString = new String(buffer,"utf-8");
-                System.out.println("浏览器的输入信息： \r\n" + requestString);
+
+
+                Request request = new Request(s);
+                System.out.println("浏览器的输入信息： \r\n" + request.getRequestString());
+                System.out.println("uri:" + request.getUri());
 
                 OutputStream os = s.getOutputStream();
-                String response_head = "HTTP/1.1 200 OK\r\n" + "Content-Type: text/html\r\n\r\n";
+
+                //web服务器和浏览器之间通信，需要遵循 http 协议
+
+                Response response = new Response();
                 String responseString = "Hello DIY Tomcat from how2j.cn";
-                responseString = response_head + responseString;
+                handle200(s, response);
+
                 os.write(responseString.getBytes());
                 os.flush();
                 s.close();
@@ -41,7 +50,23 @@ public class Bootstrap {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
 
+    private static void handle200(Socket s, Response response) throws IOException {
+        String contentType = response.getContentType();
+        String headText = Constant.response_head_202;
+        headText = StrUtil.format(headText, contentType);
+        byte[] head = headText.getBytes();
+
+        byte[] body = response.getBody();
+
+        byte[] responseBytes = new byte[head.length + body.length];
+        ArrayUtil.copy(head, 0, responseBytes, 0, head.length);
+        ArrayUtil.copy(body, 0, responseBytes, head.length, body.length);
+
+        OutputStream os = s.getOutputStream();
+        os.write(responseBytes);
+        s.close();
     }
 }
 

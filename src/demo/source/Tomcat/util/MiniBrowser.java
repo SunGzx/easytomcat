@@ -1,9 +1,6 @@
 package demo.source.Tomcat.util;
 
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URL;
@@ -12,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+//迷你浏览器：模拟发送 Http 协议的请求，并且获取完整的 Http 响应，通过这种方式更好的理解浏览器与服务器是如何通信。
 public class MiniBrowser {
 
     public static void main(String[] args) throws Exception {
@@ -22,10 +20,21 @@ public class MiniBrowser {
         System.out.println(httpString);
     }
 
+    /**
+     * getContentBytes 返回二进制的 http 响应内容 （可简单理解为去掉头的 html 部分）
+     * @param url
+     * @return
+     */
     public static byte[] getContentBytes(String url) {
         return getContentBytes(url, false);
     }
 
+
+    /**
+     * 返回字符串的 http 响应内容 （可简单理解为去掉头的 html 部分）
+     * @param url
+     * @return
+     */
     public static String getContentString(String url) {
         return getContentString(url,false);
     }
@@ -68,6 +77,11 @@ public class MiniBrowser {
         return new String(bytes).trim();
     }
 
+    /**
+     * getHttpString 返回字符串的 http 响应
+     * @param url
+     * @return
+     */
     public static String getHttpString(String url) {
         return getHttpString(url,false);
     }
@@ -110,20 +124,7 @@ public class MiniBrowser {
             pWriter.println(httpRequestString);
             InputStream is = client.getInputStream();
 
-            int buffer_size = 1024;
-
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            byte buffer[] = new byte[buffer_size];
-            while(true) {
-                int length = is.read(buffer);
-                if(-1==length)
-                    break;
-                baos.write(buffer, 0, length);
-                if(length!=buffer_size)
-                    break;
-            }
-
-            result = baos.toByteArray();
+            result = readBytes(is);
             client.close();
         } catch (Exception e) {
             e.printStackTrace();
@@ -136,5 +137,22 @@ public class MiniBrowser {
 
         return result;
 
+    }
+
+
+    public static byte[] readBytes(InputStream is) throws IOException {
+        int buffer_size = 1024;
+        byte buffer[] = new byte[buffer_size];
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        while(true) {
+            int length = is.read(buffer);
+            if(-1==length)
+                break;
+            baos.write(buffer, 0, length);
+            if(length!=buffer_size)
+                break;
+        }
+        byte[] result =baos.toByteArray();
+        return result;
     }
 }
