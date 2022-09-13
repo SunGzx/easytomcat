@@ -35,7 +35,6 @@ public class Bootstrap {
                 System.out.println("浏览器的输入信息： \r\n" + request.getRequestString());
                 System.out.println("uri:" + request.getUri());
 
-                OutputStream os = s.getOutputStream();
 
                 //web服务器和浏览器之间通信，需要遵循 http 协议
 
@@ -43,9 +42,6 @@ public class Bootstrap {
                 String responseString = "Hello DIY Tomcat from how2j.cn";
                 handle200(s, response);
 
-                os.write(responseString.getBytes());
-                os.flush();
-                s.close();
             }
         } catch (IOException e) {
             e.printStackTrace();
